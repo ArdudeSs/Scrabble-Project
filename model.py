@@ -8,7 +8,7 @@ class ScrabbleModel:
             raise ValueError("The number of players should be between 1 and 4.")
 
         self.setup_board()
-        print("board setup done")
+        # print("board setup done")
         self.acceptable_words: set[str] = set()
         with open(f"{word_list_name}.txt") as f:
             line: str = f.readline()
@@ -16,7 +16,7 @@ class ScrabbleModel:
                 self.acceptable_words.add(line)
                 line: str = f.readline()
 
-        print("word list setup done")
+        # print("word list setup done")
 
         self.tile_counts: dict[Tile, int] = {}
         self.tile_bag: list[Tile] = []
@@ -28,7 +28,7 @@ class ScrabbleModel:
 
                 self.tile_counts.update({Tile(letters[0]):len(letters)})
                 letters: str = bag.readline()
-        print("tile bag setup done")
+        # print("tile bag setup done")
 
     def setup_board(self) -> None:
         self.board: list[list[str]] = []

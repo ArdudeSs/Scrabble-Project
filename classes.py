@@ -29,6 +29,9 @@ class Tile:
         elif l in {'Z', 'Q'}:
             self.value = 10
 
+    def __str__(self):
+        return self.letter
+
 # class WordList:
 
 #     def __init__(self, word_list_name: str):

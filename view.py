@@ -11,4 +11,12 @@ class View:
         for p in list_players:
             print(f"{p.name}: {p.score}")
 
+    def request_player_name(self):
+        raise NotImplementedError
+
+    def display_board(self, board: list[list[str]]):
+        for row in board:
+            print(row)
+
+
     

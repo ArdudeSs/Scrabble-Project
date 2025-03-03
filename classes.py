@@ -1,4 +1,4 @@
-
+from enum import Enum, auto
 
 class Player:
     def __init__(self, name: str):
@@ -10,6 +10,12 @@ class Player:
             self.name: str = name
             self.score: int = 0
             self.rack: list[Tile | str] = ["_", "_", "_", "_", "_", "_", "_"]
+
+    def get_rack_value(self):
+        return sum(t.value for t in self.rack if isinstance(t, Tile))
+
+    def __str__(self):
+        return self.name
 
 class Tile:
     def __init__(self, l: str):
@@ -28,9 +34,46 @@ class Tile:
             self.value = 8
         elif l in {'Z', 'Q'}:
             self.value = 10
+        elif l == '?':
+            self.value = 0
 
     def __str__(self):
         return self.letter
+
+class GameStatus(Enum):
+    DONE = auto() # The game ends when the tile bag is exhausted and one player's rack has been exhausted.
+    ONGOING = auto()
+    ENDGAME = auto() # This means that the tile bag has been exhausted.
+    PLAYER_DECISION = auto()
+
+
+class Premium(Enum):
+    DOUBLE_WORD = auto()
+    DOUBLE_LETTER = auto()
+    TRIPLE_WORD = auto()
+    TRIPLE_LETTER = auto()
+
+class Cell:
+    def __init__(self, prem: str, r: int, c: int):
+        self.row: int = r
+        self.col: int = c
+        self.premium: Premium | None
+        self.rep = prem
+        self.tile: Tile | None = None
+        match prem:
+            case 'DW':
+                self.premium = Premium.DOUBLE_WORD
+            case 'DL':
+                self.premium = Premium.DOUBLE_LETTER
+            case 'TL':
+                self.premium = Premium.TRIPLE_LETTER
+            case 'TW':
+                self.premium = Premium.TRIPLE_WORD
+            case '_':
+                self.premium = None
+
+    def __str__(self):
+        return self.rep
 
 # class WordList:
 

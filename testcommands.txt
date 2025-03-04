@@ -1,0 +1,2 @@
+Start a game with 2 players, CSW2019 dictionary, and 5pt challenge:
+python3 main.py 2 CSW2019 5pt

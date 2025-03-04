@@ -9,7 +9,7 @@ class Player:
         else:
             self.name: str = name
             self.score: int = 0
-            self.rack: list[Tile | str] = ["_", "_", "_", "_", "_", "_", "_"]
+            self.rack: list[Tile] = []
 
     def get_rack_value(self):
         return sum(t.value for t in self.rack if isinstance(t, Tile))
@@ -19,7 +19,8 @@ class Player:
 
 class Tile:
     def __init__(self, l: str):
-        self.letter = l
+        self.letter: str = l
+
         if l in {'A', 'E', 'I', 'O', 'U', 'R', 'T', 'N', 'S', 'L'}:
             self.value = 1
         elif l in {'D', 'G'}:
@@ -43,7 +44,6 @@ class Tile:
 class GameStatus(Enum):
     DONE = auto() # The game ends when the tile bag is exhausted and one player's rack has been exhausted.
     ONGOING = auto()
-    ENDGAME = auto() # This means that the tile bag has been exhausted.
     PLAYER_DECISION = auto()
 
 
@@ -58,8 +58,8 @@ class Cell:
         self.row: int = r
         self.col: int = c
         self.premium: Premium | None
-        self.rep = prem
-        self.tile: Tile | None = None
+        self.rep = prem 
+        self.tile: Tile | None = None # this is the tile occupying the cell.
         match prem:
             case 'DW':
                 self.premium = Premium.DOUBLE_WORD
@@ -75,15 +75,16 @@ class Cell:
     def __str__(self):
         return self.rep
 
-# class WordList:
+class Word:
+    def __init__(self, tiles: list[Tile]):
+        self.word: str = ''
+        self.score: int = 0
+        for tile in tiles:
+            self.word += tile.letter
+            self.score += tile.value
 
-#     def __init__(self, word_list_name: str):
-        
-#         with open(f"{word_list_name}") as f:
-#             line = f.readline()
-#             self.acceptable_words = set()
-#             while line:
-#                 self.acceptable_words.add(line)
+
+
 
 
 

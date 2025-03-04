@@ -1,7 +1,8 @@
 # pyright: strict
 
-from classes import Player, Tile, Cell, GameStatus
+from classes import Player, Tile, Cell, GameStatus, Word
 from random import randint
+
 
 class ScrabbleModel:
     def __init__(self, player_list: list[Player], word_list_name: str, challenge_rule: str):
@@ -15,11 +16,42 @@ class ScrabbleModel:
         self.status: GameStatus = GameStatus.ONGOING
         self.challenge_rule: str = challenge_rule
         self.players = self.decide_turn_order(player_list)
-        # print("board setup done")
+        self.is_first_turn = True
+
+
+    def place_tile(self, tile: Tile, r: int, c: int):
+        self.board[r][c].tile = tile
+
+    def detect_words(self, r: int, c: int) -> list[Word]:
+        raise NotImplementedError
+
+    @property
+    def is_endgame(self):
+        return len(self.tile_bag) == 0
+
+    def goto_next_player(self):
+        if self.curr_player_idx == len(self.players):
+            self.curr_player_idx = 0
+        else:
+            self.curr_player_idx += 1
+
+    def get_word_value(self, word: list[Tile]) -> int:
+        curr_sum: int = 0
+        for t in word:
+            curr_sum += t.value
+
+        return curr_sum
+
+    def score_turn(self, words: list[list[Tile]]) -> int:
+        turn_sum: int = 0
+        for word in words:
+            turn_sum += self.get_word_value(word)
+
+        return turn_sum
 
     def draw_tile(self, player: Player):
         rack = player.rack
-        if all(isinstance(t, Tile) for t in rack):
+        if len(rack) == 7:
             raise ValueError('The rack is already full and there was an attempt to draw tiles.')
 
         if len(self.tile_bag) == 0:
@@ -30,44 +62,32 @@ class ScrabbleModel:
             drawn: Tile = self.tile_bag.pop(rng)
             self.tile_counts[drawn.letter] -= 1
             # print(f"rng: {rng}, tile: {drawn}")
-
-            for i in range(0, 7):
-                if not isinstance(player.rack[i], Tile):
-                    player.rack[i] = drawn
-                    break
-
-            if all(isinstance(space, Tile) for space in rack):
-                print(f"player {player.name}'s rack is now full.")
-            
+            rack.append(drawn)
             return None
+
+    def return_tiles(self, tiles: list[Tile]):
+        for tile in tiles:
+            self.tile_bag.append(tile)
+            self.tile_counts[tile.letter] += 1
 
     def decide_turn_order(self, players: list[Player]):
         res: list[Player] = []
         for p in players:
             self.draw_tile(p)
             res.append(p)
-
         res.sort(key = lambda x: str(x.rack[0]))
         for pl in res:
             rm: Tile = pl.rack.pop(0)
-            self.tile_bag.append(rm) 
-            # Pyright's mad at me because of the above line;
-            # rm is always a tile, but since racks are list[Tile | str]
-            # Pyright thinks rm could be a str.
-            # Not sure what to do about it.
-            pl.rack.append("_")
-
+            self.tile_bag.append(rm)
         return res
-
 
     def setup_word_list(self, word_list: str) -> None:
         self.acceptable_words: set[str] = set()
         with open(f"{word_list}.txt") as f:
-            line: str = f.readline()
+            line: str = f.readline().strip()
             while line:
                 self.acceptable_words.add(line)
-                line: str = f.readline()
-
+                line: str = f.readline().strip()
         # print("word list setup done")
 
     def setup_tile_bag(self):
@@ -94,30 +114,33 @@ class ScrabbleModel:
                 row = b.readline().split()
 
     def is_acceptable(self, word: str) -> bool:
-        return word in self.acceptable_words
+        return word.upper() in self.acceptable_words
 
 # ====== TESTING STUFF ====== #
-from view import View
-Ardi = Player("Ardi")
-Renee = Player("Renee")
-Model = ScrabbleModel([Ardi, Renee], "CSW2019", "5pt")
-# print(len(Model.tile_bag))
-v = View()
+if __name__ == "__main__":
+    from view import View
+    Ardi = Player("Ardi")
+    Renee = Player("Renee")
+    Model = ScrabbleModel([Ardi, Renee], "CSW2019", "5pt")
+    # print(len(Model.tile_bag))
+    v = View()
 
-v.show_rack(Ardi.rack)
-v.show_rack(Renee.rack)
+    v.show_rack(Ardi.rack)
+    v.show_rack(Renee.rack)
 
-for pl in Model.players:
-    print(pl)
-# for tile in Model.tile_bag:
-#     print(tile)
 
-# Model.draw_tile(Ardi)
-# v.show_rack(Ardi.rack)
+    # v.display_board(Model.board)
 
-# print(len(Model.tile_bag))
-# Model.draw_tile(Ardi)
-# v.show_rack(Ardi.rack)
-# print(len(Model.tile_bag))
 
-# print(Model.tile_counts)
+    # for tile in Model.tile_bag:
+    #     print(tile)
+
+    # Model.draw_tile(Ardi)
+    # v.show_rack(Ardi.rack)
+
+    # print(len(Model.tile_bag))
+    # Model.draw_tile(Ardi)
+    # v.show_rack(Ardi.rack)
+    # print(len(Model.tile_bag))
+
+    # print(Model.tile_counts)

@@ -10,6 +10,7 @@ class Player:
             self.name: str = name
             self.score: int = 0
             self.rack: list[Tile] = []
+            self.should_skip_turn: bool = False
 
     def get_rack_value(self):
         return sum(t.value for t in self.rack if isinstance(t, Tile))
@@ -73,7 +74,10 @@ class Cell:
                 self.premium = None
 
     def __str__(self):
-        return self.rep
+        if self.tile is not None:
+            return self.tile.letter
+        else:
+            return self.rep
 
 class Word:
     def __init__(self, tiles: list[Tile]):

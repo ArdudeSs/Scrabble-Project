@@ -3,24 +3,80 @@
 from classes import Player, Tile, Cell, GameStatus, Word
 from random import randint
 
+class ChallengeResolver:
+    def __init__(self, rule: str):
+        self.rule = rule 
+
+    def resolve_unsuccessful_challenge(self, challenged: Player, challenger: Player):
+        match self.rule:
+            case "5pt":
+                challenged.score += 5
+                return
+            case "1-turn":
+                challenger.should_skip_turn = True
+                return
+
+            case _:
+                raise NotImplementedError("the challenge rule is not implemented.")
 
 class ScrabbleModel:
     def __init__(self, player_list: list[Player], word_list_name: str, challenge_rule: str):
         if not 1 < len(player_list) <= 4:
             raise ValueError("The number of players should be between 1 and 4.")
 
+        self.challenge_rule: ChallengeResolver = ChallengeResolver(challenge_rule)
         self.setup_board()
         self.setup_tile_bag()
         self.setup_word_list(word_list_name)
         self.curr_player_idx: int = 0
         self.status: GameStatus = GameStatus.ONGOING
-        self.challenge_rule: str = challenge_rule
         self.players = self.decide_turn_order(player_list)
         self.is_first_turn = True
+        self.last_word_played: tuple[Word, Cell, str] | None = None # the cell should be the first letter in the word, str should
+        # be the direction
 
+    def remove_last_word(self, challenged: Player):
+        assert self.last_word_played is not None
+        challenged.score -= self.last_word_played[0].score
+        r: int = self.last_word_played[1].row
+        c: int = self.last_word_played[1].col
+        word = self.last_word_played[0].word
+        match self.last_word_played[2]:
+            case "down":
+                for i in range(len(word)):
+                    curr_cell = self.board[r+i][c]
+                    assert curr_cell.tile is not None
+                    challenged.rack.append(curr_cell.tile)
+                    curr_cell.tile = None
+                return
+
+            case "right":
+                for i in range(len(word)):
+                    curr_cell = self.board[r][c+i]
+                    assert curr_cell.tile is not None
+                    challenged.rack.append(curr_cell.tile)
+                    curr_cell.tile = None
+                return
+
+            case _:
+                raise Exception
+
+    @property
+    def valid_turn_actions(self):
+        if self.is_endgame:
+            return ["challenge", "play word", "pass"]
+        elif self.is_first_turn:
+            return ["play word", "exchange tiles", "pass"]
+        else:
+            return ["challenge", "play word", "exchange tiles", "pass"]
 
     def place_tile(self, tile: Tile, r: int, c: int):
+        if self.board[r][c].tile != None:
+            raise ValueError("The cell is already occupied.")
         self.board[r][c].tile = tile
+
+    # def resolve_word_placement(self, curr_player_idx: int):
+    #     raise NotImplementedError
 
     def detect_words(self, r: int, c: int) -> list[Word]:
         raise NotImplementedError
@@ -113,8 +169,8 @@ class ScrabbleModel:
                 self.board.append(res_row)
                 row = b.readline().split()
 
-    def is_acceptable(self, word: str) -> bool:
-        return word.upper() in self.acceptable_words
+    def is_acceptable(self, word: Word) -> bool:
+        return word.word.upper() in self.acceptable_words
 
 # ====== TESTING STUFF ====== #
 if __name__ == "__main__":
@@ -127,9 +183,10 @@ if __name__ == "__main__":
 
     v.show_rack(Ardi.rack)
     v.show_rack(Renee.rack)
+    # v.take_player_action(Model.valid_turn_actions)
 
 
-    # v.display_board(Model.board)
+    v.display_board(Model.board)
 
 
     # for tile in Model.tile_bag:

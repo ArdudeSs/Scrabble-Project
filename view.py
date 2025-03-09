@@ -18,11 +18,14 @@ class View:
         return str(input(f"What is the name of Player {p_number}?"))
 
     def display_board(self, board: list[list[Cell]]):
-        for row in board:
+        top_row = [" ", " 0", " 1"]
+        print(top_row)
+
+        for i in range(len(board)):
             curr_row = []
-            for Cell in row:
+            for Cell in board[i]:
                 curr_row.append(Cell.rep)
-            print(curr_row)
+            print([i, *curr_row])
 
     def show_rack(self, rack: list[Tile]):
         display: list[str] = []
@@ -33,13 +36,19 @@ class View:
 
         print(display)
 
-    def take_word_start_location_and_direction(self, p: Player):
+    def take_player_action(self, valid_actions: list[str]):
+        for i in range(1, len(valid_actions) + 1):
+            print(f"{i} - {valid_actions[i-1]}")
+        choice = int(input())
+        return valid_actions[choice]
+
+    def take_word_start_location_and_direction(self):
         start_row: int = int(input("What row will your word start in?"))
         start_col: int = int(input("What column will your word start in?"))
         direction: str = str(input("Which direction (down or right) do you want to extend your word?"))
         return start_row, start_col, direction.lower()
 
-    def choose_tile(self, p: Player):
+    def choose_tile_for_blank(self, p: Player):
         for i in range(1, len(p.rack)+1):
             print(f"{i} - {p.rack[i-1]}")
         inp: int = int(input())
@@ -53,7 +62,13 @@ class View:
         else:
             return p.rack[inp]
 
+    def display_tiles(self, tiles: list[Tile]):
+        print(f"Selected tiles: {tiles}")
 
+    def choose_tile_from_rack(self, player: Player):
+        for i in range(len(player.rack)):
+            print(f"{i} - {player.rack[i]}")
+        return input("Input a number to select tiles, or type anything else when you're finished picking tiles.")
 
 
     

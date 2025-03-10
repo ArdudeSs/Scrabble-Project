@@ -61,6 +61,13 @@ class ScrabbleModel:
             case _:
                 raise Exception
 
+    def next_cell(self, curr_row: int, curr_col: int, direction: str):
+        if direction == 'down':
+            return curr_row + 1, curr_col
+
+        elif direction == 'right':
+            return curr_row, curr_col + 1
+
     @property
     def valid_turn_actions(self):
         if self.is_endgame:
@@ -78,15 +85,27 @@ class ScrabbleModel:
     # def resolve_word_placement(self, curr_player_idx: int):
     #     raise NotImplementedError
 
-    def detect_words(self, r: int, c: int) -> list[Word]:
+    def detect_words(self, r: int, c: int, dir: str) -> list[Word]:
         raise NotImplementedError
+
+    def create_display_board(self):
+        display_board: list[list[str]] = []
+        for row in self.board:
+            display_row: list[str] = []
+
+            for cell in row:
+                display_row.append(cell.rep)
+
+            display_board.append(display_row)
+
+        return display_board
 
     @property
     def is_endgame(self):
         return len(self.tile_bag) == 0
 
     def goto_next_player(self):
-        if self.curr_player_idx == len(self.players):
+        if self.curr_player_idx == len(self.players) - 1:
             self.curr_player_idx = 0
         else:
             self.curr_player_idx += 1
@@ -181,8 +200,8 @@ if __name__ == "__main__":
     # print(len(Model.tile_bag))
     v = View()
 
-    v.show_rack(Ardi.rack)
-    v.show_rack(Renee.rack)
+    v.display_rack(Ardi.rack)
+    v.display_rack(Renee.rack)
     # v.take_player_action(Model.valid_turn_actions)
 
 
